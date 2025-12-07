@@ -193,6 +193,19 @@
       color: var(--muted);
     }
 
+	.verse-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      margin-top: 0.45rem;
+      font-size: 0.85rem;
+    }
+
+    .verse-controls span {
+      color: var(--muted);
+    }
+
     .hint-bar {
       display: flex;
       flex-wrap: wrap;
@@ -238,7 +251,7 @@
     .poem {
       margin-top: 0.15rem;
       line-height: 2.0;
-      font-size: 1.25rem;
+      font-size: 1.20rem;
     }
 
     .meta-line {
@@ -267,6 +280,7 @@
       align-items: center;
       gap: 0.2rem;
       transition: background 0.1s ease, box-shadow 0.1s ease;
+	  font-size: 1.05rem;
     }
 
     .poem-line.current-line {
@@ -289,10 +303,6 @@
       touch-action: manipulation;
     }
 
-    .poem-line .line-play + .line-play {
-      margin-left: -0.3rem;
-    }
-
     .poem-line .line-play:active {
       transform: scale(0.96);
     }
@@ -301,7 +311,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.05rem;          /* letters+gaps close together */
-      margin-right: 0.75rem; /* clear distance between words */
+      margin-right: 0.65rem; /* clear distance between words */
     }
 
     .word-text {
@@ -321,7 +331,7 @@
 
     .word-input {
       font-family: inherit;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       padding: 0.15rem 0.6rem;
       border-radius: 0.65rem;
       border: 2px solid var(--border);
@@ -337,11 +347,11 @@
 
     /* Single-character gaps (letters mode) */
     .char-input {
-      min-width: 2.3ch;
-      max-width: 2.7ch;
-      padding: 0.1rem 0.25rem;
+      min-width: 2.1ch;
+      max-width: 2.5ch;
+      padding: 0.08rem 0.25rem;
       text-align: center;
-      font-size: 1.35rem;
+      font-size: 1.2rem;
     }
 
     .word-input.correct {
@@ -389,7 +399,7 @@
       }
 
       header h1 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
       }
 
       header p {
@@ -397,11 +407,11 @@
       }
 
       .poem {
-        font-size: 1.4rem;
+        font-size: 1.15rem;
       }
 
       .poem-line {
-        font-size: 1.25rem;
+        font-size: 1.05rem;
         padding: 0.4rem 0.6rem;
         border-radius: 1rem;
       }
@@ -423,6 +433,7 @@
       }
 
       .audio-controls,
+	  .verse-controls,
       .hint-bar,
       .guided-controls {
         flex-direction: column;
@@ -431,30 +442,30 @@
 
       .btn,
       .btn-sm {
-        font-size: 1rem;
+        font-size: 0.95rem;
         padding: 0.4rem 1rem;
         min-height: 2.6rem;
       }
 
       .poem-line .line-play {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         padding: 0.2rem 0.8rem;
         min-height: 2.2rem;
       }
 
       .word-input {
-        font-size: 1.35rem;
+        font-size: 1.1rem;
         padding: 0.2rem 0.65rem;
         min-width: 3.7ch;
       }
 
       .char-input {
-        font-size: 1.45rem;
-        min-width: 2.5ch;
+        font-size: 1.2rem;
+        min-width: 2.2ch;
       }
 
       .word-wrapper {
-        margin-right: 0.85rem;
+        margin-right: 0.7rem;
       }
     }
   </style>
@@ -494,6 +505,14 @@
       <button class="btn btn-primary btn-sm" id="playAll" type="button">▶ Teljes hang lejátszása</button>
       <button class="btn btn-sm" id="pauseAudio" type="button">⏸ Szünet</button>
       <small>(mp3 fájl neve: <code>szozat.mp3</code> ugyanebben a mappában)</small>
+    </div>
+
+	<div class="verse-controls">
+      <span>Ugrás versszakhoz:</span>
+      <button class="btn btn-sm verse-btn" data-stanza="0" type="button">1.</button>
+      <button class="btn btn-sm verse-btn" data-stanza="1" type="button">2.</button>
+      <button class="btn btn-sm verse-btn" data-stanza="2" type="button">3.</button>
+      <button class="btn btn-sm verse-btn" data-stanza="3" type="button">4.</button>
     </div>
 
     <div class="hint-bar">
@@ -590,6 +609,7 @@
   const tokenById = new Map();
   const allTokens = [];
   const poemLines = [];
+  const stanzaFirstLineIndex = [];
 
   // --- Theme handling ---
 
@@ -823,6 +843,11 @@
         });
 
         poemLines.push(line);
+	
+		if (stanzaLineIdx === 0) {
+          stanzaFirstLineIndex[stanzaIdx] = lineIndex;
+        }	
+		  
         lineIndex++;
       });
     });
@@ -958,6 +983,8 @@
     input.value = token.userAnswer || "";
     input.setAttribute("data-word-id", token.id);
     input.setAttribute("data-line-id", token.lineId);
+	input.autocapitalize = "none";
+	input.inputMode = "text";
 
     const evalResultInit = evaluateToken(token, token.userAnswer);
     token.quality = evalResultInit.quality;
@@ -999,6 +1026,8 @@
     input.setAttribute("data-word-id", token.id);
     input.setAttribute("data-line-id", token.lineId);
     input.setAttribute("data-order", String(order));
+	input.autocapitalize = "none";
+	input.inputMode = "text";
 
     // Restore from token.userAnswer if present
     const existing = token.userAnswer || "";
@@ -1092,76 +1121,50 @@
     const visibleFraction =
       mode === "letters" ? 1 - hideLevel / MAX_HIDE_LEVEL : 1;
 
-    poemLines.forEach((line, idx) => {
+    poemLines.forEach((line) => {
       const lineDiv = document.createElement("div");
       lineDiv.className = "poem-line";
       lineDiv.setAttribute("data-line-index", line.audioIndex);
 
-      if (idx === activeLineIndex) {
+      if (line.audioIndex === activeLineIndex) {
         lineDiv.classList.add("current-line");
       }
 
-      // Play from this line onward
-      const playFromBtn = document.createElement("button");
-      playFromBtn.type = "button";
-      playFromBtn.className = "line-play";
-      playFromBtn.textContent = "▶";
-      playFromBtn.title = "Lejátszás ettől a sortól tovább";
-      playFromBtn.addEventListener("click", ev => {
+      // Only a "play this line" button (no "play from here" on mobile)
+      const playOnceBtn = document.createElement("button");
+      playOnceBtn.type = "button";
+      playOnceBtn.className = "line-play";
+      playOnceBtn.textContent = "♪";
+      playOnceBtn.title = "Csak ezt a sort játssza le";
+      playOnceBtn.addEventListener("click", ev => {
         ev.stopPropagation();
-        if (singleLineTimer) {
-          clearTimeout(singleLineTimer);
-          singleLineTimer = null;
-        }
-        singleLinePlaying = false;
-        guidedSessionRunning = false;
-        guidedWaitingForAnswers = false;
 
-        const startTime =
-          LINE_TIMINGS[line.audioIndex] != null
-            ? LINE_TIMINGS[line.audioIndex]
-            : 0;
-        audioEl.currentTime = startTime;
-        audioEl.play();
-        activeLineIndex = line.audioIndex;
-        highlightActiveLine();
+
+		// If we are in guided mode *and* this is the current guided line,
+		 // just replay that line without turning guided mode off.
+      if (guidedSessionRunning && line.audioIndex === guidedCurrentLineIndex) {
+          guidedWaitingForAnswers = false;
+          if (singleLineTimer) {
+            clearTimeout(singleLineTimer);
+            singleLineTimer = null;
+          }
+          singleLinePlaying = false;
+
+          const startTime =
+            LINE_TIMINGS[line.audioIndex] != null
+              ? LINE_TIMINGS[line.audioIndex]
+              : 0;
+
+          audioEl.currentTime = startTime;
+          audioEl.play();
+          activeLineIndex = line.audioIndex;
+          highlightActiveLine();
+        } else {
+          // Normal single-line behavior
+          playSingleLine(line.audioIndex);
+        }
       });
 
-		// Play only this line
-		const playOnceBtn = document.createElement("button");
-		playOnceBtn.type = "button";
-		playOnceBtn.className = "line-play";
-		playOnceBtn.textContent = "♪";
-		playOnceBtn.title = "Csak ezt a sort játssza le";
-		playOnceBtn.addEventListener("click", ev => {
-		  ev.stopPropagation();
-
-		  // If we are in guided mode *and* this is the current guided line,
-		  // just replay that line without turning guided mode off.
-		  if (guidedSessionRunning && line.audioIndex === guidedCurrentLineIndex) {
-			guidedWaitingForAnswers = false;          // we are listening again
-			if (singleLineTimer) {
-			  clearTimeout(singleLineTimer);
-			  singleLineTimer = null;
-			}
-			singleLinePlaying = false;               // not using single-line timer now
-
-			const startTime =
-			  LINE_TIMINGS[line.audioIndex] != null
-				? LINE_TIMINGS[line.audioIndex]
-				: 0;
-
-			audioEl.currentTime = startTime;
-			audioEl.play();
-			activeLineIndex = line.audioIndex;
-			highlightActiveLine();
-		  } else {
-			// Normal behavior (outside guided mode or on a different line)
-			playSingleLine(line.audioIndex);
-		  }
-		});
-
-      lineDiv.appendChild(playFromBtn);
       lineDiv.appendChild(playOnceBtn);
 
       // Words
@@ -1359,6 +1362,26 @@
       singleLinePlaying = false;
       singleLineTimer = null;
     }, durationMs);
+  }
+
+  function playFromStanza(stanzaIndex) {
+    const startLineIndex = stanzaFirstLineIndex[stanzaIndex];
+    if (startLineIndex == null) return;
+
+    if (singleLineTimer) {
+      clearTimeout(singleLineTimer);
+      singleLineTimer = null;
+    }
+    guidedSessionRunning = false;
+    guidedWaitingForAnswers = false;
+    singleLinePlaying = false;
+
+    const startTime =
+      LINE_TIMINGS[startLineIndex] != null ? LINE_TIMINGS[startLineIndex] : 0;
+    audioEl.currentTime = startTime;
+    audioEl.play();
+    activeLineIndex = startLineIndex;
+    highlightActiveLine();
   }
 
   // --- Event handlers ---
@@ -1625,6 +1648,13 @@
     startGuidedSession();
   });
 
+  document.querySelectorAll(".verse-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const stanzaIndex = Number(btn.dataset.stanza || 0);
+      playFromStanza(stanzaIndex);
+    });
+  });
+
   audioEl.addEventListener("timeupdate", () => {
     if (guidedSessionRunning) {
       if (!guidedWaitingForAnswers) {
@@ -1661,3 +1691,4 @@
 </script>
 </body>
 </html>
+
