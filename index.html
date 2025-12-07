@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Szózat gyakorló – 1–4. versszak (mobil)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-card: #020617;
+      --bg-card-alt: #020617;
+      --fg: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --border: #1f2937;
+      --correct: #22c55e;
+      --almost: #a3e635;
+      --wrong: #ef4444;
+      --bg-gradient: radial-gradient(circle at top, #020617 0, #000 60%);
+    }
+
+    /* Light mode overrides */
+    body.light {
+      --bg: #f9fafb;
+      --bg-card: #ffffff;
+      --bg-card-alt: #f3f4f6;
+      --fg: #020617;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --border: #d1d5db;
+      --correct: #16a34a;
+      --almost: #65a30d;
+      --wrong: #dc2626;
+      --bg-gradient: radial-gradient(circle at top, #f9fafb 0, #e5e7eb 60%);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg-gradient);
+      color: var(--fg);
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      min-height: 100vh;
+    }
+
+    #app {
+      max-width: 720px;
+      width: 100%;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      padding: 0.25rem 0.25rem 0;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 0.9rem;
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.85rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.25);
+    }
+
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .mode-toggle label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      background: var(--bg-card-alt);
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .mode-toggle input[type="radio"] {
+      accent-color: var(--accent);
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hide-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--bg-card-alt);
+      color: var(--fg);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: background 0.1s ease, transform 0.06s ease, box-shadow 0.1s ease;
+      touch-action: manipulation;
+      min-height: 2.4rem; /* bigger tap target */
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 0 transparent;
+    }
+
+    .btn-primary {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--bg-card-alt), var(--bg));
+    }
+
+    .btn-sm {
+      padding: 0.3rem 0.8rem;
+      font-size: 0.9rem;
+      min-height: 2.2rem;
+    }
+
+    .hide-value {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .audio-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+      margin-top: 0.55rem;
+      font-size: 0.85rem;
+    }
+
+    .audio-controls small {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hint-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .hint-bar span {
+      color: var(--muted);
+    }
+
+    .guided-controls {
+      margin-top: 0.55rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .guided-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      color: var(--muted);
+      touch-action: manipulation;
+    }
+
+    .guided-toggle input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .guided-controls small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .poem {
+      margin-top: 0.15rem;
+      line-height: 2.0;
+      font-size: 1.25rem;
+    }
+
+    .meta-line {
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .meta-line.title {
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      margin-top: 0.1rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .separator {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 0.15rem 0 0.6rem 0;
+    }
+
+    .poem-line {
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.2rem;
+      transition: background 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .poem-line.current-line {
+      background: rgba(30, 64, 175, 0.25);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+    }
+
+    .poem-line .line-play {
+      border: none;
+      padding: 0.18rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: var(--bg-card-alt);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      flex-shrink: 0;
+      margin-right: 0.15rem;
+      min-height: 2rem;
+      touch-action: manipulation;
+    }
+
+    .poem-line .line-play + .line-play {
+      margin-left: -0.3rem;
+    }
+
+    .poem-line .line-play:active {
+      transform: scale(0.96);
+    }
+
+    .word-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.05rem;          /* letters+gaps close together */
+      margin-right: 0.75rem; /* clear distance between words */
+    }
+
+    .word-text {
+      white-space: pre;
+    }
+
+    .punct {
+      color: var(--muted);
+      font-size: 0.9em;
+      margin-left: 0.02rem;
+    }
+
+    .stanza-gap {
+      height: 1.3rem;
+      width: 100%;
+    }
+
+    .word-input {
+      font-family: inherit;
+      font-size: 1.2rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 0.65rem;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      color: var(--fg);
+      min-width: 3.5ch;
+      max-width: 16ch;
+    }
+
+    .word-input::placeholder {
+      color: #9ca3af;
+    }
+
+    /* Single-character gaps (letters mode) */
+    .char-input {
+      min-width: 2.3ch;
+      max-width: 2.7ch;
+      padding: 0.1rem 0.25rem;
+      text-align: center;
+      font-size: 1.35rem;
+    }
+
+    .word-input.correct {
+      border-color: var(--correct);
+      background: rgba(22, 163, 74, 0.1);
+    }
+
+    .word-input.diacritic {
+      border-color: var(--almost);
+      background: rgba(190, 242, 100, 0.08);
+      text-decoration: underline wavy rgba(190, 242, 100, 0.9);
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 2px;
+    }
+
+    .word-input.almost {
+      border-color: #fb923c;
+      background: rgba(248, 171, 64, 0.1);
+    }
+
+    .word-input.off,
+    .word-input.wrong {
+      border-color: var(--wrong);
+      background: rgba(248, 113, 113, 0.05);
+    }
+
+    .word-input.empty {
+      border-color: var(--border);
+      background: var(--bg-card);
+    }
+
+    .word-input.selected {
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.8);
+    }
+
+    /* Mobile-specific tweaks */
+    @media (max-width: 640px) {
+      body {
+        align-items: stretch;
+      }
+
+      #app {
+        max-width: 100%;
+        padding: 0.6rem 0.6rem 0.9rem;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      header p {
+        font-size: 0.95rem;
+      }
+
+      .poem {
+        font-size: 1.4rem;
+      }
+
+      .poem-line {
+        font-size: 1.25rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 1rem;
+      }
+
+      .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+      }
+
+      .mode-toggle {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .top-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .audio-controls,
+      .hint-bar,
+      .guided-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .btn,
+      .btn-sm {
+        font-size: 1rem;
+        padding: 0.4rem 1rem;
+        min-height: 2.6rem;
+      }
+
+      .poem-line .line-play {
+        font-size: 0.95rem;
+        padding: 0.2rem 0.8rem;
+        min-height: 2.2rem;
+      }
+
+      .word-input {
+        font-size: 1.35rem;
+        padding: 0.2rem 0.65rem;
+        min-width: 3.7ch;
+      }
+
+      .char-input {
+        font-size: 1.45rem;
+        min-width: 2.5ch;
+      }
+
+      .word-wrapper {
+        margin-right: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Szózat gyakorló</h1>
+    <p>Vörösmarty Mihály – <strong>Szózat</strong> (1–4. versszak)</p>
+  </header>
+
+  <div class="card">
+    <div class="top-bar">
+      <div class="mode-toggle">
+        <span style="font-size:0.8rem; color:var(--muted);">Mód:</span>
+        <label>
+          <input type="radio" name="mode" value="letters" checked>
+          Betűk gyakorlása
+        </label>
+        <label>
+          <input type="radio" name="mode" value="words">
+          Szavak gyakorlása
+        </label>
+      </div>
+
+      <div class="top-right">
+        <div class="hide-controls">
+          <button class="btn btn-sm" id="hideLess" type="button">−</button>
+          <span>Nehezítés: <span class="hide-value" id="hideLevelValue">0</span> / 10</span>
+          <button class="btn btn-sm" id="hideMore" type="button">+</button>
+        </div>
+        <button class="btn btn-sm" id="themeToggle" type="button">☀ Világos</button>
+      </div>
+    </div>
+
+    <div class="audio-controls">
+      <button class="btn btn-primary btn-sm" id="playAll" type="button">▶ Teljes hang lejátszása</button>
+      <button class="btn btn-sm" id="pauseAudio" type="button">⏸ Szünet</button>
+      <small>(mp3 fájl neve: <code>szozat.mp3</code> ugyanebben a mappában)</small>
+    </div>
+
+    <div class="hint-bar">
+      <span>A kijelölt szó be van keretezve.</span>
+      <button class="btn btn-sm" id="hintLetterBtn" type="button">Betű súgás</button>
+      <button class="btn btn-sm" id="hintWordBtn" type="button">Szó mutatása</button>
+    </div>
+
+    <div class="guided-controls">
+      <label class="guided-toggle">
+        <input type="checkbox" id="guidedModeToggle">
+        <span>Vezetett (soronkénti) audio gyakorlás</span>
+      </label>
+      <button class="btn btn-sm" id="guidedStartBtn" type="button">▶ Indítás az elejétől</button>
+      <small>Hallgasd meg a sort, töltsd ki zöldre, aztán automatikusan jön a következő.</small>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="poemContainer" class="poem"></div>
+  </div>
+
+  <audio id="audio" src="szozat.mp3"></audio>
+</div>
+
+<script>
+  // --- Poem data ---
+  const POEM_RAW = {
+    meta: ["Vörösmarty Mihály", "SZÓZAT"],
+    stanzas: [
+      [
+        "Hazádnak rendületlenűl",
+        "Légy híve, oh magyar;",
+        "Bölcsőd az s majdan sírod is,",
+        "Mely ápol s eltakar."
+      ],
+      [
+        "A nagy világon e kivűl",
+        "Nincsen számodra hely;",
+        "Áldjon vagy verjen sors keze;",
+        "Itt élned, halnod kell."
+      ],
+      [
+        "Ez a föld, melyen annyiszor",
+        "Apáid vére folyt;",
+        "Ez, melyhez minden szent nevet",
+        "Egy ezredév csatolt."
+      ],
+      [
+        "Itt küzdtenek honért a hős",
+        "Árpádnak hadai;",
+        "Itt törtek össze rabigát",
+        "Hunyadnak karjai."
+      ]
+    ]
+  };
+
+  // Line timings in seconds (no meta lines, just the poem lines)
+  const LINE_TIMINGS = [
+    0,   5,   8,   13,  // 1. versszak
+    16.4,  20,  23,  27,  // 2. versszak
+    31,  38.25,  40,  44.2,  // 3. versszak
+    47,  50.2,  52,  54.1   // 4. versszak
+  ];
+
+  const MAX_HIDE_LEVEL = 10;
+
+  const poemContainer = document.getElementById("poemContainer");
+  const hideLessBtn = document.getElementById("hideLess");
+  const hideMoreBtn = document.getElementById("hideMore");
+  const hideLevelValue = document.getElementById("hideLevelValue");
+  const hintLetterBtn = document.getElementById("hintLetterBtn");
+  const hintWordBtn = document.getElementById("hintWordBtn");
+  const playAllBtn = document.getElementById("playAll");
+  const pauseAudioBtn = document.getElementById("pauseAudio");
+  const audioEl = document.getElementById("audio");
+  const guidedModeToggle = document.getElementById("guidedModeToggle");
+  const guidedStartBtn = document.getElementById("guidedStartBtn");
+  const themeToggleBtn = document.getElementById("themeToggle");
+
+  let hideLevel = 0;
+  let mode = "letters"; // "letters" | "words"
+  let currentWordId = null;
+  let activeLineIndex = -1;
+
+  let guidedModeEnabled = false;
+  let guidedSessionRunning = false;
+  let guidedCurrentLineIndex = 0;
+  let guidedWaitingForAnswers = false;
+
+  let singleLinePlaying = false;
+  let singleLineTimer = null;
+
+  const tokenById = new Map();
+  const allTokens = [];
+  const poemLines = [];
+
+  // --- Theme handling ---
+
+  function updateThemeToggleLabel() {
+    if (!themeToggleBtn) return;
+    const isLight = document.body.classList.contains("light");
+    themeToggleBtn.textContent = isLight ? "🌙 Sötét" : "☀ Világos";
+  }
+
+  (function initTheme() {
+    try {
+      const saved = localStorage.getItem("szozatTheme");
+      if (saved === "light") {
+        document.body.classList.add("light");
+      }
+    } catch (e) {}
+    updateThemeToggleLabel();
+  })();
+
+  themeToggleBtn.addEventListener("click", () => {
+    const isLight = document.body.classList.toggle("light");
+    try {
+      localStorage.setItem("szozatTheme", isLight ? "light" : "dark");
+    } catch (e) {}
+    updateThemeToggleLabel();
+  });
+
+  // --- Helpers ---
+
+  function isLetter(ch) {
+    return /[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű]/.test(ch);
+  }
+
+  function pseudoRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }
+
+  function normalizeForCompare(s) {
+    return s
+      .toLowerCase()
+      .replace(/[\s.,;:!?]/g, "");
+  }
+
+  function stripAccentsString(s) {
+    const baseChar = ch => {
+      const lower = ch.toLowerCase();
+      if ("áa".includes(lower)) return "a";
+      if ("ée".includes(lower)) return "e";
+      if ("íi".includes(lower)) return "i";
+      if ("óoöő".includes(lower)) return "o";
+      if ("úuüű".includes(lower)) return "u";
+      return lower;
+    };
+    return [...s].map(baseChar).join("");
+  }
+
+  function similarityScore(a, b) {
+    const aChars = [...a];
+    const bChars = [...b];
+    const lenA = aChars.length;
+    const lenB = bChars.length;
+    if (lenA === 0 && lenB === 0) return 1;
+
+    const dp = Array(lenA + 1)
+      .fill(null)
+      .map(() => Array(lenB + 1).fill(0));
+
+    for (let i = 0; i <= lenA; i++) dp[i][0] = i;
+    for (let j = 0; j <= lenB; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= lenA; i++) {
+      for (let j = 1; j <= lenB; j++) {
+        const costSub = aChars[i - 1] === bChars[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1,
+          dp[i - 1][j - 1] + costSub
+        );
+      }
+    }
+
+    const dist = dp[lenA][lenB];
+    const maxLen = Math.max(lenA, lenB) || 1;
+    return Math.max(0, 1 - dist / maxLen);
+  }
+
+  function evaluateAnswer(correctRaw, attemptRaw) {
+    const normCorrect = normalizeForCompare(correctRaw);
+    const normAttempt = normalizeForCompare(attemptRaw);
+
+    if (!normAttempt) {
+      return { quality: "empty", correct: correctRaw, score: 0 };
+    }
+
+    if (normCorrect === normAttempt) {
+      return { quality: "perfect", correct: correctRaw, score: 1 };
+    }
+
+    if (stripAccentsString(normCorrect) === stripAccentsString(normAttempt)) {
+      return { quality: "diacritic", correct: correctRaw, score: 0.9 };
+    }
+
+    const score = similarityScore(normCorrect, normAttempt);
+
+    if (score >= 0.8) {
+      return { quality: "almost", correct: correctRaw, score };
+    } else if (score >= 0.5) {
+      return { quality: "off", correct: correctRaw, score };
+    } else {
+      return { quality: "wrong", correct: correctRaw, score };
+    }
+  }
+
+  function splitCoreAndPunct(rawWord) {
+    const chars = [...rawWord];
+    let lastLetterIndex = -1;
+    for (let i = 0; i < chars.length; i++) {
+      if (isLetter(chars[i])) lastLetterIndex = i;
+    }
+    if (lastLetterIndex === -1) {
+      return { core: rawWord, punct: "" };
+    }
+    const core = chars.slice(0, lastLetterIndex + 1).join("");
+    const punct = chars.slice(lastLetterIndex + 1).join("");
+    return { core, punct };
+  }
+
+  function computeMaskData(core, token, visibleFraction) {
+    const chars = [...core];
+    const letterIndices = [];
+    for (let i = 0; i < chars.length; i++) {
+      if (isLetter(chars[i])) letterIndices.push(i);
+    }
+    const totalLetters = letterIndices.length;
+    if (totalLetters === 0) {
+      return { maskedCore: core, hiddenIndices: [], letterIndices };
+    }
+
+    const showCount = Math.max(
+      0,
+      Math.round(totalLetters * visibleFraction)
+    );
+
+    if (showCount >= totalLetters) {
+      return { maskedCore: core, hiddenIndices: [], letterIndices };
+    }
+
+    const sorted = letterIndices.slice().sort((a, b) => {
+      const ra = pseudoRandom(token.globalIndex * 131 + a * 977);
+      const rb = pseudoRandom(token.globalIndex * 131 + b * 977);
+      return ra - rb;
+    });
+
+    const visibleSet = new Set(sorted.slice(0, showCount));
+    const hiddenIndices = letterIndices
+      .filter(i => !visibleSet.has(i))
+      .sort((a, b) => a - b);
+
+    const maskedCore = chars
+      .map((ch, idx) =>
+        isLetter(ch) && !visibleSet.has(idx) ? "·" : ch
+      )
+      .join("");
+
+    return { maskedCore, hiddenIndices, letterIndices };
+  }
+
+  function shouldBeInteractive(token) {
+    const base = normalizeForCompare(token.raw);
+
+    // Letters mode: any word with letters can be interactive when something is hidden
+    if (mode === "letters") {
+      if (hideLevel <= 0) return false;
+      if (!base.length) return false; // punctuation only
+      return true;
+    }
+
+    // Words mode: still skip ultra-short words
+    if (base.length <= 2) return false;
+    const ratio = hideLevel / MAX_HIDE_LEVEL;
+    if (ratio <= 0) return false;
+    const r = pseudoRandom(token.globalIndex * 131 + hideLevel * 977);
+    return r < ratio;
+  }
+
+  function getLineEndTime(lineIndex) {
+    if (lineIndex + 1 < LINE_TIMINGS.length) {
+      return LINE_TIMINGS[lineIndex + 1] - 0.1;
+    }
+    if (!isNaN(audioEl.duration) && audioEl.duration > 0) {
+      return audioEl.duration;
+    }
+    return LINE_TIMINGS[lineIndex] + 4;
+  }
+
+  // --- Model build ---
+
+  function buildModel() {
+    let globalIndex = 0;
+    let lineIndex = 0;
+
+    POEM_RAW.stanzas.forEach((stanza, stanzaIdx) => {
+      stanza.forEach((lineText, stanzaLineIdx) => {
+        const line = {
+          id: "L" + lineIndex,
+          text: lineText,
+          stanzaIndex: stanzaIdx,
+          stanzaLineIndex: stanzaLineIdx,
+          isStanzaEnd: stanzaLineIdx === stanza.length - 1,
+          tokens: [],
+          audioIndex: lineIndex
+        };
+
+        const rawTokens = lineText.split(/\s+/).filter(t => t.length > 0);
+        rawTokens.forEach(word => {
+          const token = {
+            id: "W" + globalIndex,
+            raw: word,
+            userAnswer: "",   // letters-mode: hidden letters; words-mode: full word
+            hintCount: 0,
+            quality: "empty",
+            globalIndex: globalIndex,
+            lineId: line.id,
+            audioIndex: line.audioIndex
+          };
+          line.tokens.push(token);
+          allTokens.push(token);
+          tokenById.set(token.id, token);
+          globalIndex++;
+        });
+
+        poemLines.push(line);
+        lineIndex++;
+      });
+    });
+  }
+
+  buildModel();
+
+  // --- Evaluation per token (handles both modes) ---
+
+  function evaluateToken(token, rawInput) {
+    if (mode === "letters") {
+      const { core } = splitCoreAndPunct(token.raw);
+      const visibleFraction = 1 - hideLevel / MAX_HIDE_LEVEL;
+      const maskData = computeMaskData(core, token, visibleFraction);
+      const hidden = maskData.hiddenIndices;
+      const chars = [...core];
+      const typed = [...rawInput];
+      let ti = 0;
+
+      hidden.forEach(idx => {
+        if (ti < typed.length) {
+          chars[idx] = typed[ti++];
+        } else {
+          chars[idx] = "·";
+        }
+      });
+
+      const candidateCore = chars.join("");
+      const evalRes = evaluateAnswer(core, candidateCore);
+      evalRes.candidate = candidateCore;
+      return evalRes;
+    } else {
+      return evaluateAnswer(token.raw, rawInput);
+    }
+  }
+
+  // --- Rendering helpers ---
+
+  function applyEvaluationStyles(inputEl, evalResult) {
+    const classes = ["correct", "almost", "off", "wrong", "empty", "diacritic"];
+    inputEl.classList.remove(...classes);
+
+    inputEl.title = "Helyes: " + evalResult.correct;
+
+    if (evalResult.quality === "perfect") {
+      inputEl.classList.add("correct");
+    } else if (evalResult.quality === "diacritic") {
+      inputEl.classList.add("diacritic");
+    } else if (evalResult.quality === "almost") {
+      inputEl.classList.add("almost");
+    } else if (evalResult.quality === "off" || evalResult.quality === "wrong") {
+      inputEl.classList.add("wrong");
+    } else {
+      inputEl.classList.add("empty");
+    }
+  }
+
+  function applyEvaluationStylesToCharInputs(inputs, evalResult) {
+    const classes = ["correct", "almost", "off", "wrong", "empty", "diacritic"];
+    inputs.forEach(inputEl => {
+      inputEl.classList.remove(...classes);
+      inputEl.title = "Helyes: " + evalResult.correct;
+      if (evalResult.quality === "perfect") {
+        inputEl.classList.add("correct");
+      } else if (evalResult.quality === "diacritic") {
+        inputEl.classList.add("diacritic");
+      } else if (evalResult.quality === "almost") {
+        inputEl.classList.add("almost");
+      } else if (evalResult.quality === "off" || evalResult.quality === "wrong") {
+        inputEl.classList.add("wrong");
+      } else {
+        inputEl.classList.add("empty");
+      }
+    });
+  }
+
+  function updateSelectedHighlight() {
+    document
+      .querySelectorAll(".word-input.selected")
+      .forEach(el => el.classList.remove("selected"));
+
+    if (!currentWordId) return;
+    const inputs = document.querySelectorAll(
+      `input.word-input[data-word-id="${currentWordId}"]`
+    );
+    inputs.forEach(input => input.classList.add("selected"));
+  }
+
+  function focusNextInteractiveTokenInLine(token) {
+    const line = poemLines.find(l => l.id === token.lineId);
+    if (!line) return;
+
+    const interactiveTokens = line.tokens.filter(t => {
+      if (!shouldBeInteractive(t)) return false;
+      const input = document.querySelector(
+        `input.word-input[data-word-id="${t.id}"]`
+      );
+      return !!input;
+    });
+
+    if (interactiveTokens.length === 0) return;
+    const idx = interactiveTokens.findIndex(t => t.id === token.id);
+    if (idx === -1 || idx + 1 >= interactiveTokens.length) return;
+    const nextToken = interactiveTokens[idx + 1];
+    const input = document.querySelector(
+      `input.word-input[data-word-id="${nextToken.id}"]`
+    );
+    if (input) {
+      currentWordId = nextToken.id;
+      input.focus();
+      updateSelectedHighlight();
+    }
+  }
+
+  function focusFirstInteractiveTokenOnLine(lineIndex) {
+    const line = poemLines[lineIndex];
+    if (!line) return;
+    const input = document.querySelector(
+      `input.word-input[data-line-id="${line.id}"]`
+    );
+    if (input) {
+      currentWordId = input.dataset.wordId;
+      input.focus();
+      updateSelectedHighlight();
+    }
+  }
+
+  function createInputForToken(token, placeholder) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "word-input";
+    input.placeholder = placeholder || "";
+    input.value = token.userAnswer || "";
+    input.setAttribute("data-word-id", token.id);
+    input.setAttribute("data-line-id", token.lineId);
+
+    const evalResultInit = evaluateToken(token, token.userAnswer);
+    token.quality = evalResultInit.quality;
+    applyEvaluationStyles(input, evalResultInit);
+
+    input.addEventListener("input", event => {
+      const val = event.target.value;
+      const prevQuality = token.quality;
+      token.userAnswer = val;
+      const evalResult = evaluateToken(token, val);
+      token.quality = evalResult.quality;
+      applyEvaluationStyles(event.target, evalResult);
+
+      if (
+        (evalResult.quality === "perfect" ||
+          evalResult.quality === "diacritic") &&
+        prevQuality !== evalResult.quality
+      ) {
+        focusNextInteractiveTokenInLine(token);
+      }
+
+      checkGuidedProgress();
+    });
+
+    input.addEventListener("focus", () => {
+      currentWordId = token.id;
+      updateSelectedHighlight();
+    });
+
+    return input;
+  }
+
+  function createCharInput(token, order) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "word-input char-input";
+    input.maxLength = 1;
+    input.placeholder = "_";
+    input.setAttribute("data-word-id", token.id);
+    input.setAttribute("data-line-id", token.lineId);
+    input.setAttribute("data-order", String(order));
+
+    // Restore from token.userAnswer if present
+    const existing = token.userAnswer || "";
+    if (order < existing.length) {
+      input.value = existing[order];
+    }
+
+    input.addEventListener("input", () => {
+      const inputs = Array.from(
+        document.querySelectorAll(
+          `input.char-input[data-word-id="${token.id}"]`
+        )
+      ).sort(
+        (a, b) =>
+          Number(a.dataset.order || 0) - Number(b.dataset.order || 0)
+      );
+
+      let str = "";
+      inputs.forEach(inp => {
+        str += inp.value || "";
+      });
+
+      const prevQuality = token.quality;
+      token.userAnswer = str;
+      const evalResult = evaluateToken(token, str);
+      token.quality = evalResult.quality;
+      applyEvaluationStylesToCharInputs(inputs, evalResult);
+
+      // auto-focus next gap in this word
+      const currentOrder = Number(input.dataset.order || 0);
+      if (input.value.length === 1) {
+        const nextEmpty = inputs.find(
+          inp =>
+            Number(inp.dataset.order || 0) > currentOrder && !inp.value
+        );
+        if (nextEmpty) {
+          currentWordId = token.id;
+          nextEmpty.focus();
+          updateSelectedHighlight();
+        }
+      }
+
+      // if the whole word just turned green, go to next word
+      if (
+        (evalResult.quality === "perfect" ||
+          evalResult.quality === "diacritic") &&
+        prevQuality !== evalResult.quality
+      ) {
+        focusNextInteractiveTokenInLine(token);
+      }
+
+      checkGuidedProgress();
+    });
+
+    input.addEventListener("focus", () => {
+      currentWordId = token.id;
+      updateSelectedHighlight();
+    });
+
+    return input;
+  }
+
+  function highlightActiveLine() {
+    document
+      .querySelectorAll(".poem-line")
+      .forEach(el => el.classList.remove("current-line"));
+
+    if (activeLineIndex >= 0) {
+      const el = document.querySelector(
+        `.poem-line[data-line-index="${activeLineIndex}"]`
+      );
+      if (el) el.classList.add("current-line");
+    }
+  }
+
+  function renderPoem() {
+    poemContainer.innerHTML = "";
+
+    // meta
+    POEM_RAW.meta.forEach((line, idx) => {
+      const div = document.createElement("div");
+      div.className = "meta-line" + (idx === 1 ? " title" : "");
+      div.textContent = line;
+      poemContainer.appendChild(div);
+    });
+
+    const sep = document.createElement("div");
+    sep.className = "separator";
+    poemContainer.appendChild(sep);
+
+    const visibleFraction =
+      mode === "letters" ? 1 - hideLevel / MAX_HIDE_LEVEL : 1;
+
+    poemLines.forEach((line, idx) => {
+      const lineDiv = document.createElement("div");
+      lineDiv.className = "poem-line";
+      lineDiv.setAttribute("data-line-index", line.audioIndex);
+
+      if (idx === activeLineIndex) {
+        lineDiv.classList.add("current-line");
+      }
+
+      // Play from this line onward
+      const playFromBtn = document.createElement("button");
+      playFromBtn.type = "button";
+      playFromBtn.className = "line-play";
+      playFromBtn.textContent = "▶";
+      playFromBtn.title = "Lejátszás ettől a sortól tovább";
+      playFromBtn.addEventListener("click", ev => {
+        ev.stopPropagation();
+        if (singleLineTimer) {
+          clearTimeout(singleLineTimer);
+          singleLineTimer = null;
+        }
+        singleLinePlaying = false;
+        guidedSessionRunning = false;
+        guidedWaitingForAnswers = false;
+
+        const startTime =
+          LINE_TIMINGS[line.audioIndex] != null
+            ? LINE_TIMINGS[line.audioIndex]
+            : 0;
+        audioEl.currentTime = startTime;
+        audioEl.play();
+        activeLineIndex = line.audioIndex;
+        highlightActiveLine();
+      });
+
+		// Play only this line
+		const playOnceBtn = document.createElement("button");
+		playOnceBtn.type = "button";
+		playOnceBtn.className = "line-play";
+		playOnceBtn.textContent = "♪";
+		playOnceBtn.title = "Csak ezt a sort játssza le";
+		playOnceBtn.addEventListener("click", ev => {
+		  ev.stopPropagation();
+
+		  // If we are in guided mode *and* this is the current guided line,
+		  // just replay that line without turning guided mode off.
+		  if (guidedSessionRunning && line.audioIndex === guidedCurrentLineIndex) {
+			guidedWaitingForAnswers = false;          // we are listening again
+			if (singleLineTimer) {
+			  clearTimeout(singleLineTimer);
+			  singleLineTimer = null;
+			}
+			singleLinePlaying = false;               // not using single-line timer now
+
+			const startTime =
+			  LINE_TIMINGS[line.audioIndex] != null
+				? LINE_TIMINGS[line.audioIndex]
+				: 0;
+
+			audioEl.currentTime = startTime;
+			audioEl.play();
+			activeLineIndex = line.audioIndex;
+			highlightActiveLine();
+		  } else {
+			// Normal behavior (outside guided mode or on a different line)
+			playSingleLine(line.audioIndex);
+		  }
+		});
+
+      lineDiv.appendChild(playFromBtn);
+      lineDiv.appendChild(playOnceBtn);
+
+      // Words
+      line.tokens.forEach(token => {
+        const wrapper = document.createElement("span");
+        wrapper.className = "word-wrapper";
+
+        const { core, punct } = splitCoreAndPunct(token.raw);
+        const interactive = shouldBeInteractive(token);
+
+        if (mode === "letters" && hideLevel > 0) {
+          const maskData = computeMaskData(core, token, visibleFraction);
+          const hiddenSet = new Set(maskData.hiddenIndices);
+
+          if (interactive && maskData.hiddenIndices.length > 0) {
+            let order = 0;
+            let segmentStart = 0;
+
+            maskData.hiddenIndices.forEach(hIdx => {
+              if (hIdx > segmentStart) {
+                const seg = core.slice(segmentStart, hIdx);
+                const span = document.createElement("span");
+                span.className = "word-text";
+                span.textContent = seg;
+                wrapper.appendChild(span);
+              }
+              const ci = createCharInput(token, order);
+              wrapper.appendChild(ci);
+              order++;
+              segmentStart = hIdx + 1;
+            });
+
+            if (segmentStart < core.length) {
+              const tail = core.slice(segmentStart);
+              const span = document.createElement("span");
+              span.className = "word-text";
+              span.textContent = tail;
+              wrapper.appendChild(span);
+            }
+
+            if (punct) {
+              const punctSpan = document.createElement("span");
+              punctSpan.className = "punct";
+              punctSpan.textContent = punct;
+              wrapper.appendChild(punctSpan);
+            }
+          } else {
+            const span = document.createElement("span");
+            span.className = "word-text";
+            span.textContent = maskData.maskedCore + punct;
+            wrapper.appendChild(span);
+          }
+        } else {
+          if (mode === "words" && interactive) {
+            const len = normalizeForCompare(core).length;
+            const placeholder = "·".repeat(Math.max(len, 3));
+            const input = createInputForToken(token, placeholder);
+            wrapper.appendChild(input);
+
+            if (punct) {
+              const punctSpan = document.createElement("span");
+              punctSpan.className = "punct";
+              punctSpan.textContent = punct;
+              wrapper.appendChild(punctSpan);
+            }
+          } else {
+            const span = document.createElement("span");
+            span.className = "word-text";
+            span.textContent = token.raw;
+            wrapper.appendChild(span);
+          }
+        }
+
+        lineDiv.appendChild(wrapper);
+      });
+
+      poemContainer.appendChild(lineDiv);
+
+      if (line.isStanzaEnd) {
+        const gap = document.createElement("div");
+        gap.className = "stanza-gap";
+        poemContainer.appendChild(gap);
+      }
+    });
+
+    highlightActiveLine();
+    updateSelectedHighlight();
+  }
+
+  // --- Guided mode logic ---
+
+  function startGuidedSession() {
+    guidedSessionRunning = true;
+    guidedWaitingForAnswers = false;
+    guidedCurrentLineIndex = 0;
+    singleLinePlaying = false;
+    if (singleLineTimer) {
+      clearTimeout(singleLineTimer);
+      singleLineTimer = null;
+    }
+
+    allTokens.forEach(t => {
+      t.userAnswer = "";
+      t.hintCount = 0;
+      t.quality = "empty";
+    });
+
+    renderPoem();
+    currentWordId = null;
+
+    const startTime =
+      LINE_TIMINGS[guidedCurrentLineIndex] != null
+        ? LINE_TIMINGS[guidedCurrentLineIndex]
+        : 0;
+    audioEl.currentTime = startTime;
+    audioEl.play();
+    activeLineIndex = guidedCurrentLineIndex;
+    highlightActiveLine();
+    focusFirstInteractiveTokenOnLine(guidedCurrentLineIndex);
+  }
+
+  function advanceGuidedLine() {
+    guidedWaitingForAnswers = false;
+    guidedCurrentLineIndex++;
+    if (guidedCurrentLineIndex >= poemLines.length) {
+      guidedSessionRunning = false;
+      activeLineIndex = -1;
+      highlightActiveLine();
+      return;
+    }
+    const startTime =
+      LINE_TIMINGS[guidedCurrentLineIndex] != null
+        ? LINE_TIMINGS[guidedCurrentLineIndex]
+        : 0;
+    audioEl.currentTime = startTime;
+    audioEl.play();
+    activeLineIndex = guidedCurrentLineIndex;
+    highlightActiveLine();
+    focusFirstInteractiveTokenOnLine(guidedCurrentLineIndex);
+  }
+
+  function checkGuidedProgress() {
+    if (!guidedSessionRunning || !guidedWaitingForAnswers) return;
+
+    const line = poemLines[guidedCurrentLineIndex];
+    const inputs = document.querySelectorAll(
+      `input.word-input[data-line-id="${line.id}"]`
+    );
+
+    if (inputs.length === 0) {
+      advanceGuidedLine();
+      return;
+    }
+
+    const seenTokens = new Set();
+    let allGood = true;
+
+    inputs.forEach(input => {
+      const tid = input.dataset.wordId;
+      if (!tid || seenTokens.has(tid)) return;
+      seenTokens.add(tid);
+      const tok = tokenById.get(tid);
+      if (!tok) return;
+      if (!(tok.quality === "perfect" || tok.quality === "diacritic")) {
+        allGood = false;
+      }
+    });
+
+    if (allGood) {
+      advanceGuidedLine();
+    }
+  }
+
+  function playSingleLine(lineIndex) {
+    if (singleLineTimer) {
+      clearTimeout(singleLineTimer);
+      singleLineTimer = null;
+    }
+    guidedSessionRunning = false;
+    guidedWaitingForAnswers = false;
+    singleLinePlaying = true;
+
+    const startTime =
+      LINE_TIMINGS[lineIndex] != null ? LINE_TIMINGS[lineIndex] : 0;
+    audioEl.currentTime = startTime;
+    audioEl.play();
+    activeLineIndex = lineIndex;
+    highlightActiveLine();
+
+    const endTime = getLineEndTime(lineIndex);
+    const durationMs = Math.max(0, (endTime - startTime) * 1000);
+
+    singleLineTimer = setTimeout(() => {
+      audioEl.pause();
+      singleLinePlaying = false;
+      singleLineTimer = null;
+    }, durationMs);
+  }
+
+  // --- Event handlers ---
+
+  hideLessBtn.addEventListener("click", () => {
+    hideLevel = Math.max(0, hideLevel - 1);
+    hideLevelValue.textContent = hideLevel;
+    renderPoem();
+  });
+
+  hideMoreBtn.addEventListener("click", () => {
+    hideLevel = Math.min(MAX_HIDE_LEVEL, hideLevel + 1);
+    hideLevelValue.textContent = hideLevel;
+    renderPoem();
+  });
+
+  document.querySelectorAll('input[name="mode"]').forEach(radio => {
+    radio.addEventListener("change", ev => {
+      mode = ev.target.value;
+      renderPoem();
+    });
+  });
+
+  document.addEventListener("keydown", ev => {
+    const tag = ev.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    if (ev.key === "ArrowLeft") {
+      hideLevel = Math.max(0, hideLevel - 1);
+      hideLevelValue.textContent = hideLevel;
+      renderPoem();
+    } else if (ev.key === "ArrowRight") {
+      hideLevel = Math.min(MAX_HIDE_LEVEL, hideLevel + 1);
+      hideLevelValue.textContent = hideLevel;
+      renderPoem();
+    }
+  });
+
+  hintLetterBtn.addEventListener("click", () => {
+    if (!currentWordId) return;
+    const token = tokenById.get(currentWordId);
+    if (!token) return;
+
+    if (mode === "letters") {
+      const { core } = splitCoreAndPunct(token.raw);
+      const visibleFraction = 1 - hideLevel / MAX_HIDE_LEVEL;
+      const maskData = computeMaskData(core, token, visibleFraction);
+      const hidden = maskData.hiddenIndices;
+      if (hidden.length === 0) return;
+
+      const inputs = Array.from(
+        document.querySelectorAll(
+          `input.char-input[data-word-id="${token.id}"]`
+        )
+      ).sort(
+        (a, b) =>
+          Number(a.dataset.order || 0) - Number(b.dataset.order || 0)
+      );
+
+      let idxToFill = -1;
+      for (let i = 0; i < inputs.length; i++) {
+        if (!inputs[i].value) {
+          idxToFill = i;
+          break;
+        }
+      }
+
+      if (idxToFill === -1) return;
+
+      const coreIndex = hidden[idxToFill];
+      const correctChar = core[coreIndex];
+      inputs[idxToFill].value = correctChar;
+
+      let str = "";
+      inputs.forEach(inp => {
+        str += inp.value || "";
+      });
+
+      const prevQuality = token.quality;
+      token.userAnswer = str;
+      const evalResult = evaluateToken(token, str);
+      token.quality = evalResult.quality;
+      applyEvaluationStylesToCharInputs(inputs, evalResult);
+
+      inputs[idxToFill].focus();
+      updateSelectedHighlight();
+
+      if (
+        (evalResult.quality === "perfect" ||
+          evalResult.quality === "diacritic") &&
+        prevQuality !== evalResult.quality
+      ) {
+        focusNextInteractiveTokenInLine(token);
+      }
+
+      checkGuidedProgress();
+    } else {
+      // words mode: reveal letters from the start
+      const correct = token.raw;
+      const chars = [...correct];
+      let lettersSeen = 0;
+      let cutIndex = chars.length;
+
+      for (let i = 0; i < chars.length; i++) {
+        if (isLetter(chars[i])) {
+          lettersSeen++;
+          if (lettersSeen === (token.hintCount || 0) + 1) {
+            cutIndex = i + 1;
+            break;
+          }
+        }
+      }
+
+      token.hintCount = (token.hintCount || 0) + 1;
+      if (lettersSeen === 0) cutIndex = correct.length;
+
+      const newVal = correct.slice(0, cutIndex);
+      token.userAnswer = newVal;
+
+      const input = document.querySelector(
+        `input.word-input[data-word-id="${token.id}"]`
+      );
+      if (input) {
+        const prevQuality = token.quality;
+        input.value = newVal;
+        const evalResult = evaluateToken(token, newVal);
+        token.quality = evalResult.quality;
+        applyEvaluationStyles(input, evalResult);
+        input.focus();
+        updateSelectedHighlight();
+
+        if (
+          (evalResult.quality === "perfect" ||
+            evalResult.quality === "diacritic") &&
+          prevQuality !== evalResult.quality
+        ) {
+          focusNextInteractiveTokenInLine(token);
+        }
+
+        checkGuidedProgress();
+      }
+    }
+  });
+
+  hintWordBtn.addEventListener("click", () => {
+    if (!currentWordId) return;
+    const token = tokenById.get(currentWordId);
+    if (!token) return;
+
+    if (mode === "letters") {
+      const { core } = splitCoreAndPunct(token.raw);
+      const visibleFraction = 1 - hideLevel / MAX_HIDE_LEVEL;
+      const maskData = computeMaskData(core, token, visibleFraction);
+      const hidden = maskData.hiddenIndices;
+
+      const inputs = Array.from(
+        document.querySelectorAll(
+          `input.char-input[data-word-id="${token.id}"]`
+        )
+      ).sort(
+        (a, b) =>
+          Number(a.dataset.order || 0) - Number(b.dataset.order || 0)
+      );
+
+      hidden.forEach((coreIdx, order) => {
+        if (inputs[order]) {
+          inputs[order].value = core[coreIdx];
+        }
+      });
+
+      let str = "";
+      inputs.forEach(inp => {
+        str += inp.value || "";
+      });
+
+      const prevQuality = token.quality;
+      token.userAnswer = str;
+      const evalResult = evaluateToken(token, str);
+      token.quality = evalResult.quality;
+      applyEvaluationStylesToCharInputs(inputs, evalResult);
+
+      if (inputs[0]) {
+        inputs[0].focus();
+      }
+      updateSelectedHighlight();
+
+      if (
+        (evalResult.quality === "perfect" ||
+          evalResult.quality === "diacritic") &&
+        prevQuality !== evalResult.quality
+      ) {
+        focusNextInteractiveTokenInLine(token);
+      }
+
+      checkGuidedProgress();
+    } else {
+      // words mode: full word
+      const newVal = token.raw;
+      token.userAnswer = newVal;
+      token.hintCount = Infinity;
+
+      const input = document.querySelector(
+        `input.word-input[data-word-id="${token.id}"]`
+      );
+      if (input) {
+        const prevQuality = token.quality;
+        input.value = newVal;
+        const evalResult = evaluateToken(token, newVal);
+        token.quality = evalResult.quality;
+        applyEvaluationStyles(input, evalResult);
+        input.focus();
+        updateSelectedHighlight();
+
+        if (
+          (evalResult.quality === "perfect" ||
+            evalResult.quality === "diacritic") &&
+          prevQuality !== evalResult.quality
+        ) {
+          focusNextInteractiveTokenInLine(token);
+        }
+
+        checkGuidedProgress();
+      }
+    }
+  });
+
+  playAllBtn.addEventListener("click", () => {
+    guidedSessionRunning = false;
+    guidedWaitingForAnswers = false;
+    singleLinePlaying = false;
+    if (singleLineTimer) {
+      clearTimeout(singleLineTimer);
+      singleLineTimer = null;
+    }
+    audioEl.currentTime = 0;
+    audioEl.play();
+    activeLineIndex = 0;
+    highlightActiveLine();
+  });
+
+  pauseAudioBtn.addEventListener("click", () => {
+    audioEl.pause();
+    if (singleLineTimer) {
+      clearTimeout(singleLineTimer);
+      singleLineTimer = null;
+    }
+    singleLinePlaying = false;
+  });
+
+  guidedModeToggle.addEventListener("change", ev => {
+    guidedModeEnabled = ev.target.checked;
+    if (!guidedModeEnabled) {
+      guidedSessionRunning = false;
+      guidedWaitingForAnswers = false;
+      activeLineIndex = -1;
+      highlightActiveLine();
+    }
+  });
+
+  guidedStartBtn.addEventListener("click", () => {
+    if (!guidedModeEnabled) {
+      guidedModeEnabled = true;
+      guidedModeToggle.checked = true;
+    }
+    startGuidedSession();
+  });
+
+  audioEl.addEventListener("timeupdate", () => {
+    if (guidedSessionRunning) {
+      if (!guidedWaitingForAnswers) {
+        const endTime = getLineEndTime(guidedCurrentLineIndex);
+        if (audioEl.currentTime >= endTime) {
+          audioEl.pause();
+          guidedWaitingForAnswers = true;
+          checkGuidedProgress();
+        }
+      }
+      activeLineIndex = guidedCurrentLineIndex;
+      highlightActiveLine();
+      return;
+    }
+
+    if (singleLinePlaying) {
+      return;
+    }
+
+    const t = audioEl.currentTime;
+    let idx = -1;
+    for (let i = 0; i < LINE_TIMINGS.length; i++) {
+      if (LINE_TIMINGS[i] <= t) idx = i;
+      else break;
+    }
+    if (idx !== activeLineIndex) {
+      activeLineIndex = idx;
+      highlightActiveLine();
+    }
+  });
+
+  // Initial render
+  renderPoem();
+</script>
+</body>
+</html>
